@@ -1,106 +1,56 @@
-### Setup
-1. Install wireguard
-2. Run these commadns to clear existing things
-```bash
-sudo wg-quick down wg0 2>/dev/null
-sudo rm -f /etc/wireguard/wg0.conf
-
-minikube delete --all
-
-sudo ip route flush table main
-```
-
------
-
-### Step 2
-
-```bash
-
-minikube start --driver=docker --ports=30000:30000/udp --ports=30001:30001/tcp
+## 1
+ Go to https://my.zerotier.com/, create a network and Copy the **16-character Network ID** (e.g., `8056c2e21c000001`).
 
 
-eval $(minikube docker-env)
+## 2
+  Open `edge.yaml` and paste that network id in line 42
 
-docker build -t vpn-manager:local ./vpn_manager
-
-kubectl apply -f k8s.yaml
-
-kubectl get pods
-```
-Make sure all the pods are running before moveing to next steps
-
------
-
-### Step 3
+## 3
 
 
 ```bash
-
-CLIENT_PRIV=$(wg genkey)
-CLIENT_PUB=$(echo "$CLIENT_PRIV" | wg pubkey)
-MY_IP="10.13.13.99"
-
-
-SERVER_PUB=$(kubectl exec deployment/vpn-gateway -- wg show wg0 public-key)
-MINI_IP=$(minikube ip)
-
-cat <<EOF > manual_vpn.conf
-[Interface]
-PrivateKey = $CLIENT_PRIV
-Address = $MY_IP/32
-MTU = 1280
-
-[Peer]
-PublicKey = $SERVER_PUB
-Endpoint = $MINI_IP:30000
-AllowedIPs = 10.0.0.0/8, 10.13.13.0/24
-PersistentKeepalive = 25
-EOF
-
-kubectl exec deployment/vpn-gateway -- wg set wg0 peer $CLIENT_PUB allowed-ips $MY_IP/32
-
-kubectl exec deployment/vpn-gateway -- ip addr add 10.13.13.1/24 dev wg0 2>/dev/null
-
-kubectl exec deployment/vpn-gateway -- iptables -t nat -I POSTROUTING 1 -s 10.13.13.0/24 -j MASQUERADE
-
-kubectl exec deployment/vpn-gateway -- /bin/sh -c "sysctl -w net.ipv4.conf.all.rp_filter=0; sysctl -w net.ipv4.conf.default.rp_filter=0"
-
-
-sudo cp manual_vpn.conf /etc/wireguard/wg0.conf
-sudo wg-quick up wg0
+kubectl apply -f apps.yaml -f gateway-config.yaml -f edge.yaml -f monitoring.yaml
 ```
 
------
+wait till all the containers start
 
-### **Phase 4: Verification**
+## 4
 
-Note: if connecting to vpn casues wifi to stop working, then fix some wifi powersaving options.
+ In zerotier dashboard you will see new member, that is the continer in pod, click the check box and authorize it.
 
-1.  **Check the Tunnel:**
+ Copy the **Managed IP** assigned to it (e.g., `10.147.20.5`). this is its ip once you connect to the vpn.
 
-    ```bash
-    sudo wg show
-    ```
+## 5
 
-    Look for: **latest handshake: X seconds ago** . If found ,then good, else some error.
-
-2.  **Access the Hidden Webpage:**
-
-    ```bash
-    kubectl get svc hidden-target-service
-    ```
-
-    This command gives address of private webserver (cluster-ip), which can be pinged (curled/ browsed) only why vpn is switched on.
-
-    Browse that address on browser and you will see `Welcome to nginx!` page
-
-    You can check switichng vpn off and browing the same webserver, and then switch on and browse the same webserver
+Your laptop also needs to be part of vpn to access it. Run this command in yor laptop.
 
 ```
-    # Switches the vpn on
-    sudo wg-quick up wg0
+    sudo zerotier-cli join <network-id>
+```
+Authorize this new memebr from the dashboard
+Now you should be able to access the site. 
 
-    # Switches the vpn off
-    sudo wg-quick down wg0
+  * HR Portal: `http://<Managed-IP>/hr`
+  * Finance Portal: `http://<Managed-IP>/finance`
+
+## 6
+
+Since monitoring runs inside the cluster, forward the ports to your local machine:
+
+```bash
+kubectl port-forward svc/grafana 3000:3000
 ```
 
+  * **URL:** `http://localhost:3000`
+  * **Login:** `admin` / `admin`
+  * **Setup:** Add Data Source -\> Prometheus -\> URL: `http://prometheus:9090`
+
+after these you can create viz taht you want from the prometheus datsource
+
+## 7
+
+To stop and remove everything:
+
+```bash
+kubectl delete -f apps.yaml -f gateway-config.yaml -f edge.yaml -f monitoring.yaml
+```

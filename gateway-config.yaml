@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-conf
+data:
+  nginx.conf: |
+    events { worker_connections 1024; }
+    http {
+        server {
+            listen 80;
+            
+            # Metrics Endpoint for Prometheus Exporter
+            location /stub_status {
+                stub_status;
+                allow 127.0.0.1; # Only allow the sidecar exporter
+                deny all;
+            }
+
+            # Route to HR Service
+            location /hr/ {
+                proxy_pass http://app-hr/;
+            }
+
+            # Route to Finance Service
+            location /finance/ {
+                proxy_pass http://app-finance/;
+            }
+
+            location / {
+                return 200 "Connected to Kubernetes Edge Gateway. Paths: /hr/ or /finance/";
+            }
+        }
+    }
