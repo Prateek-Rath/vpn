@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html data-theme="light">
+<head>
+  <title>VPN Proxy Web</title>
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+
+<body class="container" style="max-width: 900px;">
+
+  <h3>VPN Proxy Web Interface</h3>
+
+  <!-- LOGIN + LOGOUT ROW -->
+  <div class="grid">
+
+    <!-- LOGIN CARD -->
+    <article>
+      <h4>Login</h4>
+      <label>
+        Username
+        <input id="username" type="text" placeholder="Username">
+      </label>
+
+      <label>
+        Password
+        <input id="password" type="password" placeholder="Password">
+      </label>
+
+      <button onclick="login()">Login</button>
+      <small id="loginMessage"></small>
+    </article>
+
+    <!-- LOGOUT CARD -->
+    <article>
+      <h4>Logout</h4>
+      <button class="secondary" onclick="logout()">Logout</button>
+      <small id="logoutMessage"></small>
+    </article>
+
+  </div>
+
+  <!-- STATUS CHECK -->
+  <article>
+    <h4>Status Check</h4>
+
+    <button onclick="checkStatus()">Check /status</button>
+    <p id="statusResult" style="margin-top:10px;font-weight:bold;"></p>
+  </article>
+
+  <!-- LOAD GENERATOR -->
+  <article>
+    <h4>Load Generator</h4>
+
+    <label>
+      Requests per second
+      <input id="rpsInput" type="number" min="1" value="10">
+    </label>
+
+    <button onclick="startLoad()">Start Load</button>
+    <button class="secondary" onclick="stopLoad()">Stop Load</button>
+
+    <small id="loadMessage"></small>
+    <p id="rateLimitHits" style="font-weight:bold;"></p>
+  </article>
+
+<script>
+let token = localStorage.getItem("token") || null;
+let loadInterval = null;
+let rateLimitCount = 0;
+
+function setMsg(elem, msg, success=true) {
+  elem.style.color = success ? "green" : "red";
+  elem.textContent = msg;
+}
+
+/* LOGIN */
+async function login() {
+  const user = document.getElementById("username").value.trim();
+  const pass = document.getElementById("password").value.trim();
+  const msg = document.getElementById("loginMessage");
+
+  msg.textContent = "";
+
+  try {
+    const res = await fetch("/login", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({username: user, password: pass})
+    });
+
+    const data = await res.json();
+
+    if (res.status === 200) {
+      token = data.token;
+      localStorage.setItem("token", token);
+      setMsg(msg, "Login successful", true);
+    } else {
+      setMsg(msg, data.detail || "Login failed", false);
+    }
+  } catch {
+    setMsg(msg, "Error connecting to server", false);
+  }
+}
+
+/* STATUS CHECK */
+async function checkStatus() {
+  const msg = document.getElementById("statusResult");
+  msg.textContent = "";
+
+  const headers = token ? { "Authorization": "Bearer " + token } : {};
+
+  try {
+    const res = await fetch("/status", { headers });
+
+    if (res.status === 200) {
+      setMsg(msg, "SUCCESS", true);
+    } else {
+      setMsg(msg, "FAILURE", false);
+    }
+  } catch {
+    setMsg(msg, "FAILURE", false);
+  }
+}
+
+/* LOGOUT */
+async function logout() {
+  const msg = document.getElementById("logoutMessage");
+  msg.textContent = "";
+
+  try {
+    await fetch("/logout", { method:"POST" });
+
+    token = null;
+    localStorage.removeItem("token");
+
+    setMsg(msg, "Logged out", false);
+    document.getElementById("statusResult").textContent = "";
+  } catch {
+    setMsg(msg, "Error logging out", false);
+  }
+}
+
+/* LOAD GENERATOR */
+function startLoad() {
+  const rps = Number(document.getElementById("rpsInput").value);
+  const msg = document.getElementById("loadMessage");
+  const rl = document.getElementById("rateLimitHits");
+
+  if (!token) {
+    setMsg(msg, "Cannot start load: not logged in.", false);
+    return;
+  }
+
+  stopLoad(); // clear existing interval
+  rateLimitCount = 0;
+  rl.textContent = "";
+
+  const intervalMs = 1000 / rps;
+
+  loadInterval = setInterval(async () => {
+    const headers = { "Authorization": "Bearer " + token };
+    try {
+      const res = await fetch("/status", { headers });
+
+      if (res.status === 429) {
+        rateLimitCount++;
+        rl.style.color = "red";
+        rl.textContent = `Rate-limit hits: ${rateLimitCount}`;
+      }
+    } catch (_) {}
+  }, intervalMs);
+
+  setMsg(msg, `Load started: ${rps} req/s`, true);
+}
+
+function stopLoad() {
+  const msg = document.getElementById("loadMessage");
+
+  if (loadInterval) {
+    clearInterval(loadInterval);
+    loadInterval = null;
+    setMsg(msg, "Load stopped", false);
+  }
+}
+</script>
+
+</body>
+</html>
