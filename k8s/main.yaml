@@ -30,6 +30,13 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 9002
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
 
 ---
 apiVersion: v1
@@ -64,6 +71,13 @@ spec:
           imagePullPolicy: Never
           ports:
             - containerPort: 9001
+          resources:
+            requests:
+              cpu: "100m"  # 10% of a CPU core
+              memory: "128Mi"
+            limits:
+              cpu: "500m"  # Max 50% of a core
+              memory: "256Mi"
           env:
             - name: JWT_SECRET
               value: "devsecret"
