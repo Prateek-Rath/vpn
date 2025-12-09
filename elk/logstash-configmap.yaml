@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-pipeline
+data:
+  logstash.conf: |
+    input {
+      beats {
+        port => 5044
+      }
+    }
+
+    # filter {
+    #   # optional parsing/filtering (customize as needed)
+    #   if "nginx" in [fileset][module] or [source] =~ "nginx" {
+    #     # try to grok nginx common log format
+    #     grok {
+    #       match => { "message" => "%{COMBINEDAPACHELOG}" }
+    #       overwrite => [ "message" ]
+    #     }
+    #   }
+    # }
+
+    output {
+      elasticsearch {
+        hosts => ["elasticsearch:9200"]
+        index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
+      }
+      stdout { codec => rubydebug }
+    }
+

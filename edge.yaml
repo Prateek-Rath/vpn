@@ -39,7 +39,7 @@ spec:
             add: ["NET_ADMIN", "SYS_ADMIN"]
         env:
           - name: ZT_NETWORKS
-            value: temptemptemp # <--- PASTE ID HERE
+            value: 3b19b3a716e7942c # <--- PASTE ID HERE
         
         # --- NEW: AUTO-JOIN LOGIC ---
         lifecycle:

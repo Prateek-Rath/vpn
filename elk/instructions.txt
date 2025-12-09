@@ -1,0 +1,36 @@
+First run as mentioned in the readme:
+
+Then do this:
+
+//basic stuff (prereqs)
+minikube ssh -- sudo sysctl -w vm.max_map_count=262144
+
+//apply elastic search
+kubectl apply -f elk/elasticsearch-pvc.yaml
+kubectl apply -f elk/elasticsearch-deployment.yaml
+
+
+//verify elastic search is up
+run this on one terminal
+kubectl port-forward svc/elasticsearch 9200:9200
+on another terminal
+curl -s http://localhost:9200/ | jq .
+
+//apply logstash
+kubectl apply -f elk/logstash-configmap.yaml
+kubectl apply -f elk/logstash-deployment.yaml
+
+//apply kibana
+kubectl apply -f elk/kibana-deployment.yaml
+
+//apply filebeat daemonset
+kubectl apply -f elk/filebeat-config.yaml
+kubectl apply -f elk/filebeat-daemonset.yaml
+
+//access kibana locally in browser
+kubectl port-forward svc/kibana 5601:5601 &
+# then open http://localhost:5601 in your browser
+
+
+//generate logs and verify in kibana
+
