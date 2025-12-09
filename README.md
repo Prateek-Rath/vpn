@@ -82,3 +82,9 @@ traffic goes
 local -> nginx rev proxy -> vpn -> app
 ```
 Note: if minikube cant handle the efk stack, then `minikube start --memory 6144 --cpus 4 ` manally assigns enough memory and cpu to the minkube cluster
+Also make sure to increase the vm.max_map_count(shown below) as elasticsearch8 may not work without this. 
+```
+minikube ssh
+sudo sysctl -w vm.max_map_count=262144
+exit
+```
