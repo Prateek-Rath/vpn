@@ -1,0 +1,149 @@
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: filebeat-config
+# data:
+#   filebeat.yml: |
+#     filebeat.autodiscover:
+#       providers:
+#         - type: kubernetes
+#           node: ${NODE_NAME}
+#           hints.enabled: true
+#           templates:
+#             - condition:
+#                 contains:
+#                   kubernetes.container.name: ""
+#               config:
+#                 - type: filestream
+#                   id: "k8s-${data.kubernetes.container.name}"
+#                   paths:
+#                     - /var/log/containers/${data.kubernetes.pod.name}_${data.kubernetes.namespace}_${data.kubernetes.container.name}-*.log
+#                   parsers:
+#                     - container:
+#                   processors:
+#                     - add_kubernetes_metadata:
+#                     - decode_json_fields:
+#                         fields: ["message"]
+#                         target: ""
+
+#     output.logstash:
+#       hosts: ["logstash:5044"]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+data:
+  filebeat.yml: |
+    filebeat.autodiscover:
+      providers:
+        - type: kubernetes
+          node: ${NODE_NAME}
+          hints.enabled: true
+
+    filebeat.inputs:
+      - type: filestream
+        id: containers
+        paths:
+          - /var/log/containers/*.log
+        parsers:
+          - container:
+        processors:
+          - add_kubernetes_metadata:
+
+    output.logstash:
+      hosts: ["logstash:5044"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: filebeat
+
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: filebeat
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods
+      - namespaces
+      - nodes
+      - nodes/metrics
+    verbs: ["get", "watch", "list"]
+
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: filebeat
+subjects:
+  - kind: ServiceAccount
+    name: filebeat
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: filebeat
+  apiGroup: rbac.authorization.k8s.io
+
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: filebeat
+spec:
+  selector:
+    matchLabels:
+      app: filebeat
+  template:
+    metadata:
+      labels:
+        app: filebeat
+    spec:
+      serviceAccountName: filebeat
+      tolerations:
+        - operator: Exists
+      containers:
+        - name: filebeat
+          image: docker.elastic.co/beats/filebeat:8.11.0
+          args: ["-c", "/etc/filebeat.yml", "-e"]
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - mountPath: /var/log
+              name: varlog
+            - mountPath: /var/log/containers
+              name: varlogcontainers
+              readOnly: true
+            - mountPath: /var/log/pods
+              name: varlogpods
+              readOnly: true
+            - mountPath: /var/lib/docker/containers
+              name: dockercontainers
+              readOnly: true
+            - mountPath: /etc/filebeat.yml
+              name: config
+              subPath: filebeat.yml
+      volumes:
+        - name: varlog
+          hostPath:
+            path: /var/log
+        - name: varlogcontainers
+          hostPath:
+            path: /var/log/containers
+        - name: varlogpods
+          hostPath:
+            path: /var/log/pods
+        - name: dockercontainers
+          hostPath:
+            path: /var/lib/docker/containers
+        - name: config
+          configMap:
+            name: filebeat-config

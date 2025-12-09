@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-pipeline
+data:
+  logstash.conf: |
+    input {
+      beats {
+        port => 5044
+        # optional: set ssl => true with certs if you want (not configured here)
+      }
+    }
+
+    filter {
+      # try to parse message as JSON if the application emits JSON logs
+      if [message] {
+        json {
+          source => "message"
+          target => "parsed"
+          # if parse fails we still keep original message
+          skip_on_invalid_json => true
+        }
+      }
+      # move parsed fields to root if present
+      if [parsed] {
+        mutate {
+          merge => { "[@metadata][parsed]" => "%{[parsed]}" } # not strictly necessary
+        }
+      }
+    }
+
+    output {
+      elasticsearch {
+        hosts => ["http://elasticsearch:9200"]
+        index => "app-logs-%{+YYYY.MM.dd}"
+        # If you want to use Elasticsearch 8 with security, configure user/pass or API key here.
+      }
+      stdout { codec => rubydebug } # useful for debugging (remove if noisy)
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+    spec:
+      containers:
+        - name: logstash
+          image: docker.elastic.co/logstash/logstash:8.11.0
+          ports:
+            - containerPort: 5044    # beats
+            - containerPort: 9600    # api
+          env:
+            - name: LS_JAVA_OPTS
+              value: "-Xms512m -Xmx512m"
+          volumeMounts:
+            - name: pipeline
+              mountPath: /usr/share/logstash/pipeline/logstash.conf
+              subPath: logstash.conf
+      volumes:
+        - name: pipeline
+          configMap:
+            name: logstash-pipeline
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstash
+spec:
+  selector:
+    app: logstash
+  ports:
+    - protocol: TCP
+      port: 5044
+      targetPort: 5044
