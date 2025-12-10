@@ -4,7 +4,7 @@ kind: Kustomization
 namespace: logging
 
 resources:
-  - configmap-filebeat.yaml
-  - daemonset-filebeat.yaml
+  - configmap.yaml
+  - daemonset.yaml
   - serviceaccount.yaml
   - rbac.yaml
