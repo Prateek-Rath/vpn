@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespaces/app.yaml
+  - namespaces/logging.yaml
+  - namespaces/monitoring.yaml
+  - app
+  - vpn
+  - nginx
+  - prometheus
+  - grafana
+  - elasticsearch
+  - logstash
+  - filebeat
+  - kibana

@@ -16,24 +16,22 @@
     <!-- LOGIN CARD -->
     <article>
       <h4>Login</h4>
-      <label>
-        Username
+      <label for="username">Username
         <input id="username" type="text" placeholder="Username">
       </label>
 
-      <label>
-        Password
+      <label for="password">Password
         <input id="password" type="password" placeholder="Password">
       </label>
 
-      <button onclick="login()">Login</button>
+      <button id="loginBtn" onclick="login()">Login</button>
       <small id="loginMessage"></small>
     </article>
 
     <!-- LOGOUT CARD -->
     <article>
       <h4>Logout</h4>
-      <button class="secondary" onclick="logout()">Logout</button>
+      <button id="logoutBtn" class="secondary" onclick="logout()">Logout</button>
       <small id="logoutMessage"></small>
     </article>
 
@@ -42,22 +40,20 @@
   <!-- STATUS CHECK -->
   <article>
     <h4>Status Check</h4>
-
-    <button onclick="checkStatus()">Check /status</button>
-    <p id="statusResult" style="margin-top:10px;font-weight:bold;"></p>
+    <button id="statusBtn" onclick="checkStatus()">Check /status</button>
+    <pre id="statusResult" style="margin-top:10px;font-weight:bold;"></pre>
   </article>
 
   <!-- LOAD GENERATOR -->
   <article>
     <h4>Load Generator</h4>
 
-    <label>
-      Requests per second
+    <label for="rpsInput">Requests per second
       <input id="rpsInput" type="number" min="1" value="10">
     </label>
 
-    <button onclick="startLoad()">Start Load</button>
-    <button class="secondary" onclick="stopLoad()">Stop Load</button>
+    <button id="startLoadBtn" onclick="startLoad()">Start Load</button>
+    <button id="stopLoadBtn" class="secondary" onclick="stopLoad()">Stop Load</button>
 
     <small id="loadMessage"></small>
     <p id="rateLimitHits" style="font-weight:bold;"></p>
@@ -81,6 +77,11 @@ async function login() {
 
   msg.textContent = "";
 
+  if (!user || !pass) {
+    setMsg(msg, "Username and password required", false);
+    return;
+  }
+
   try {
     const res = await fetch("/login", {
       method: "POST",
@@ -88,7 +89,8 @@ async function login() {
       body: JSON.stringify({username: user, password: pass})
     });
 
-    const data = await res.json();
+    let data;
+    try { data = await res.json(); } catch { data = {}; }
 
     if (res.status === 200) {
       token = data.token;
@@ -111,14 +113,14 @@ async function checkStatus() {
 
   try {
     const res = await fetch("/status", { headers });
+    let data;
+    try { data = await res.json(); } catch { data = {error: "Invalid response"}; }
 
-    if (res.status === 200) {
-      setMsg(msg, "SUCCESS", true);
-    } else {
-      setMsg(msg, "FAILURE", false);
-    }
+    msg.textContent = JSON.stringify(data, null, 2); // pretty-print JSON
+    msg.style.color = res.ok ? "green" : "red";
   } catch {
-    setMsg(msg, "FAILURE", false);
+    msg.textContent = "Error connecting to server";
+    msg.style.color = "red";
   }
 }
 
@@ -129,11 +131,9 @@ async function logout() {
 
   try {
     await fetch("/logout", { method:"POST" });
-
     token = null;
     localStorage.removeItem("token");
-
-    setMsg(msg, "Logged out", false);
+    setMsg(msg, "Logged out", true);
     document.getElementById("statusResult").textContent = "";
   } catch {
     setMsg(msg, "Error logging out", false);
@@ -151,9 +151,21 @@ function startLoad() {
     return;
   }
 
-  stopLoad(); // clear existing interval
+  if (rps < 1) {
+    setMsg(msg, "RPS must be at least 1", false);
+    return;
+  }
+
+  stopLoad();
   rateLimitCount = 0;
   rl.textContent = "";
+
+  // Disable inputs during load
+  document.getElementById("username").disabled = true;
+  document.getElementById("password").disabled = true;
+  document.getElementById("loginBtn").disabled = true;
+  document.getElementById("rpsInput").disabled = true;
+  document.getElementById("startLoadBtn").disabled = true;
 
   const intervalMs = 1000 / rps;
 
@@ -161,7 +173,6 @@ function startLoad() {
     const headers = { "Authorization": "Bearer " + token };
     try {
       const res = await fetch("/status", { headers });
-
       if (res.status === 429) {
         rateLimitCount++;
         rl.style.color = "red";
@@ -180,6 +191,13 @@ function stopLoad() {
     clearInterval(loadInterval);
     loadInterval = null;
     setMsg(msg, "Load stopped", false);
+
+    // Re-enable inputs
+    document.getElementById("username").disabled = false;
+    document.getElementById("password").disabled = false;
+    document.getElementById("loginBtn").disabled = false;
+    document.getElementById("rpsInput").disabled = false;
+    document.getElementById("startLoadBtn").disabled = false;
   }
 }
 </script>

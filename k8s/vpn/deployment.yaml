@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vpn
+  namespace: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vpn
+  template:
+    metadata:
+      labels:
+        app: vpn
+    spec:
+      containers:
+        - name: vpn
+          image: vpn-image:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 9001
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          env:
+            - name: JWT_SECRET
+              value: "devsecret"
+          volumeMounts:
+            - name: creds
+              mountPath: /vpn/creds.json
+              subPath: creds.json
+      volumes:
+        - name: creds
+          secret:
+            secretName: vpn-creds

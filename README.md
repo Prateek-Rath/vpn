@@ -2,27 +2,36 @@
 # VPN
 
 ```
+cd ansible
+ansible-playbook -i inventory.ini playbook.yml
+```
+
+or 
+
+```
 eval $(minikube docker-env)
 
 docker build -t app-image:latest ./app
 docker build -t vpn-image:latest ./vpn
 
-
-kubectl apply -f k8s/main.yaml
-kubectl apply -f k8s/logging.yaml
-kubectl apply -f k8s/hpa.yaml
-
-kubectl port-forward service/nginx 9000:80
-kubectl port-forward service/prometheus 9090:9090
-kubectl port-forward service/kibana 5601:5601
+kubectl apply k k8s/
 ```
 
-go to
+Then
 
 ```
-localhost:9000 -> application
-localhost:9090 -> prometheus dashboard
+kubectl port-forward svc/nginx 30030:80 -n app
+kubectl port-forward svc/prometheus 30050:9090 -n monitoring
+kubectl port-forward svc/grafana 30060:3000 -n monitoring
+kubectl port-forward svc/kibana 30090:5601 -n logging
+```
 
+Go to
+
+```
+localhost:30030 -> application
+localhost:30060 -> grafana
+localhost:30090 -> kibana
 ```
 
 -  for hpa checking, start very large load from the browser and you can see pods increasing

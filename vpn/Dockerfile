@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /vpn
 
-COPY *.py creds.json ./ 
+COPY *.py ./ 
 
 COPY static ./static
 

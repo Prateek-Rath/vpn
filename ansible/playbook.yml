@@ -1,0 +1,53 @@
+---
+- name: Deploy VPN + App + Monitoring + Logging Stack
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    app_image: app-image:latest
+    vpn_image: vpn-image:latest
+    k8s_dir: ../k8s
+    app_namespace: app
+    monitoring_namespace: monitoring
+    logging_namespace: logging
+    app_port: 30030
+    grafana_port: 30060
+    kibana_port: 30090
+
+  tasks:
+
+  - name: Set Docker environment to point to Minikube
+    shell: eval $(minikube docker-env)
+    register: docker_env
+    ignore_errors: yes
+
+  - name: Docker env
+    debug:
+      msg: "{{ docker_env.stdout }}"
+
+  - name: Build app Docker image
+    shell: docker build -t {{ app_image }} ../app
+    register: build_app
+    ignore_errors: no
+
+  - name: App build output
+    debug:
+      msg: "{{ build_app.stdout }}"
+
+  - name: Build vpn Docker image
+    shell: docker build -t {{ vpn_image }} ../vpn
+    register: build_vpn
+    ignore_errors: no
+
+  - name: VPN build output
+    debug:
+      msg: "{{ build_vpn.stdout }}"
+
+  - name: Apply all Kubernetes manifests
+    shell: kubectl apply -k {{ k8s_dir }}/
+    register: k8s_apply
+    ignore_errors: no
+
+  - name: K8s apply output
+    debug:
+      msg: "{{ k8s_apply.stdout }}"

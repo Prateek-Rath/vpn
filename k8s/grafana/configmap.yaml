@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-config
+  namespace: monitoring
+data:
+  grafana.ini: |
+    [server]
+    http_port = 3000
+
+    [security]
+    admin_user = admin
+    admin_password = admin
+
+    [dashboards]
+    default_home_dashboard_path = /etc/grafana/provisioning/dashboards/home.json
+
+  dashboards.json: |
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "schemaVersion": 36,
+      "version": 1,
+      "title": "VPN & App Metrics",
+      "panels": [
+        {
+          "type": "graph",
+          "title": "VPN Allowed /status Requests",
+          "targets": [
+            {
+              "expr": "vpn_status_allowed_total",
+              "legendFormat": "{{user}}",
+              "refId": "A"
+            }
+          ],
+          "gridPos": { "x": 0, "y": 0, "w": 12, "h": 6 }
+        },
+        {
+          "type": "graph",
+          "title": "VPN Invalid JWT",
+          "targets": [
+            {
+              "expr": "vpn_jwt_invalid_total",
+              "refId": "A"
+            }
+          ],
+          "gridPos": { "x": 12, "y": 0, "w": 12, "h": 6 }
+        },
+        {
+          "type": "graph",
+          "title": "VPN Upstream Errors",
+          "targets": [
+            {
+              "expr": "vpn_upstream_errors_total",
+              "refId": "A"
+            }
+          ],
+          "gridPos": { "x": 0, "y": 6, "w": 12, "h": 6 }
+        },
+        {
+          "type": "graph",
+          "title": "App /status Requests",
+          "targets": [
+            {
+              "expr": "status_requests_total",
+              "refId": "A"
+            }
+          ],
+          "gridPos": { "x": 12, "y": 6, "w": 12, "h": 6 }
+        }
+      ]
+    }
