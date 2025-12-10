@@ -1,0 +1,44 @@
+minikube start --cpus=4 --memory=8192 --driver=docker # required
+
+kubectl create namespace logging
+
+#elasticsearch
+kubectl apply -f elasticsearch.yaml
+
+#kibana
+kubectl apply -f kibana.yaml
+
+# to expose kibana via minikube tunnel, since it is a nodeport service
+minikube service kibana -n logging --url
+
+# logstash
+kubectl apply -f logstash.yaml
+
+# filebeat
+kubectl apply -f filebeat.yaml
+
+# Verify that Elasticsearch Indices
+kubectl run -i --rm --restart=Never curl --image=curlimages/curl -n logging -- curl http://elasticsearch:9200
+kubectl run -i --rm --restart=Never curl --image=curlimages/curl -n logging -- curl http://elasticsearch:9200/_cat/indices?v
+
+# Verify log collection by Filebeat
+kubectl exec -n logging -it <filebeat-pod> -- ls /var/log/containers/
+
+Verify that logstash.conf exists
+kubectl exec -n logging -it <logstash-pod> -- ls /usr/share/logstash/pipeline/
+kubectl exec -n logging -it <logstash-pod> -- cat /usr/share/logstash/pipeline/logstash.conf
+
+# Steps to view data in kibana
+1.  Stack Management → Data Views → Create Data View
+    index pattern: filebeat-*
+    timestamp: @timestamp
+
+2.  Discover → select data view → filebeat-view
+    Verify fields in left panel (message, log.file.path, kubernetes.labels.*)
+
+3.  Create filter in Discover:
+    Field: kubernetes.labels.app
+    Operator: is/equals
+    Value: app # to get logs of pods labelled app in main
+
+4.  Adjust time filter if logs do not appear.

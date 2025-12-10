@@ -16,6 +16,13 @@ spec:
       containers:
         - name: logstash
           image: docker.elastic.co/logstash/logstash:8.17.0
+          env:
+            # JVM HEAP: Essential for stability and reducing GC CPU spikes
+            - name: LS_JAVA_OPTS
+              value: "-Xms512m -Xmx512m"
+            # PERFORMANCE: Set pipeline workers to match your container CPU allocation (e.g., 4)
+            - name: PIPELINE_WORKERS
+              value: "1"
           ports:
             - containerPort: 5044
             - containerPort: 9600
@@ -23,6 +30,13 @@ spec:
             - name: config-volume
               mountPath: /usr/share/logstash/pipeline/logstash.conf
               subPath: logstash.conf
+          resources:
+            limits:
+              cpu: "1000m" # 1 CPU core for 1-2 workers, increase for more
+              memory: "1Gi"
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
       volumes:
         - name: config-volume
           configMap:
