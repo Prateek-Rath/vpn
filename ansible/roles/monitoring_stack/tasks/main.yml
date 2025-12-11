@@ -1,0 +1,6 @@
+---
+- name: Deploy Prometheus
+  command: kubectl apply -k {{ k8s_dir }}/prometheus
+
+- name: Deploy Grafana
+  command: kubectl apply -k {{ k8s_dir }}/grafana

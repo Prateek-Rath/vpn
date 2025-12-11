@@ -116,7 +116,7 @@ async function checkStatus() {
     let data;
     try { data = await res.json(); } catch { data = {error: "Invalid response"}; }
 
-    msg.textContent = JSON.stringify(data, null, 2); // pretty-print JSON
+    msg.textContent = JSON.stringify(data, null, 2);
     msg.style.color = res.ok ? "green" : "red";
   } catch {
     msg.textContent = "Error connecting to server";

@@ -6,9 +6,10 @@ metadata:
 data:
   filebeat.yml: |-
     filebeat.inputs:
-    - type: container
+    - type: log
+      enabled: true
       paths:
-        - /var/log/containers/*.log
+        - /tmp/test.log
 
     output.logstash:
       hosts: ["logstash.logging.svc.cluster.local:5044"]

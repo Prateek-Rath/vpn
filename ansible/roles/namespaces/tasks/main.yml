@@ -1,0 +1,3 @@
+---
+- name: Create namespaces
+  command: kubectl apply -k {{ k8s_dir }}/namespaces

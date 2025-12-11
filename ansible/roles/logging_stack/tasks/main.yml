@@ -1,0 +1,12 @@
+---
+- name: Deploy Elasticsearch
+  command: kubectl apply -k {{ k8s_dir }}/elasticsearch
+
+- name: Deploy Logstash
+  command: kubectl apply -k {{ k8s_dir }}/logstash
+
+- name: Deploy Kibana
+  command: kubectl apply -k {{ k8s_dir }}/kibana
+
+- name: Deploy Filebeat DaemonSet
+  command: kubectl apply -k {{ k8s_dir }}/filebeat

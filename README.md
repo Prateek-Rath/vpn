@@ -3,7 +3,7 @@
 
 ```
 cd ansible
-ansible-playbook -i inventory.ini playbook.yml
+ansible-playbook -i inventory.ini playbook.yml --vault-password-file password.txt
 ```
 
 or 
@@ -21,7 +21,6 @@ Then
 
 ```
 kubectl port-forward svc/nginx 30030:80 -n app
-kubectl port-forward svc/prometheus 30050:9090 -n monitoring
 kubectl port-forward svc/grafana 30060:3000 -n monitoring
 kubectl port-forward svc/kibana 30090:5601 -n logging
 ```

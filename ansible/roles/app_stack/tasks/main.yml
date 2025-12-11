@@ -1,0 +1,17 @@
+---
+- name: Render VPN secret from template
+  template:
+    src: vpn-secret.yaml.j2
+    dest: /tmp/vpn-secret.yaml
+
+- name: Apply VPN secret
+  command: kubectl apply -f /tmp/vpn-secret.yaml
+
+- name: Deploy APP (main application)
+  command: kubectl apply -k {{ k8s_dir }}/app
+
+- name: Deploy VPN
+  command: kubectl apply -k {{ k8s_dir }}/vpn
+
+- name: Deploy Nginx
+  command: kubectl apply -k {{ k8s_dir }}/nginx

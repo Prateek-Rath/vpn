@@ -53,10 +53,6 @@ JWT_INVALID = Counter(
     "vpn_jwt_invalid_total",
     "Number of invalid or expired JWT tokens"
 )
-UPSTREAM_ERRORS = Counter(
-    "vpn_upstream_errors_total",
-    "Number of upstream app failures during /status proxy"
-)
 
 # -------------------------
 # Load credentials
@@ -123,14 +119,9 @@ async def status(request: Request):
     STATUS_ALLOWED.labels(user=username).inc()
     logger.info(json.dumps({"event": "status_success", "user": username}))
 
-    try:
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(f"{UPSTREAM}/status")
-        return JSONResponse(status_code=resp.status_code, content=resp.json())
-    except Exception:
-        UPSTREAM_ERRORS.inc()
-        logger.error(json.dumps({"event": "status_upstream_error"}))
-        raise HTTPException(502, "Upstream error")
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(f"{UPSTREAM}/status")
+    return JSONResponse(status_code=resp.status_code, content=resp.json())
 
 # METRICS
 @app.get("/metrics")

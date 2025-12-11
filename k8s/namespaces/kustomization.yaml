@@ -1,0 +1,4 @@
+resources:
+  - app.yaml
+  - logging.yaml
+  - monitoring.yaml

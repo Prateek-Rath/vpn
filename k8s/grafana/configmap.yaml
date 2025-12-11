@@ -21,52 +21,38 @@ data:
       "editable": true,
       "schemaVersion": 36,
       "version": 1,
-      "title": "VPN & App Metrics",
+      "title": "VPN Metrics",
       "panels": [
         {
-          "type": "graph",
-          "title": "VPN Allowed /status Requests",
+          "type": "timeseries",
+          "title": "Allowed /status Requests (per second)",
           "targets": [
             {
-              "expr": "vpn_status_allowed_total",
+              "expr": "irate(vpn_status_allowed_total[30s])",
               "legendFormat": "{{user}}",
               "refId": "A"
             }
           ],
-          "gridPos": { "x": 0, "y": 0, "w": 12, "h": 6 }
+          "gridPos": { "x": 0, "y": 0, "w": 24, "h": 8 },
+          "options": {
+            "showPoints": "never",
+            "legend": { "displayMode": "table", "placement": "right" }
+          }
         },
         {
-          "type": "graph",
-          "title": "VPN Invalid JWT",
+          "type": "timeseries",
+          "title": "Invalid JWT Requests (per second)",
           "targets": [
             {
-              "expr": "vpn_jwt_invalid_total",
+              "expr": "irate(vpn_jwt_invalid_total[30s])",
               "refId": "A"
             }
           ],
-          "gridPos": { "x": 12, "y": 0, "w": 12, "h": 6 }
-        },
-        {
-          "type": "graph",
-          "title": "VPN Upstream Errors",
-          "targets": [
-            {
-              "expr": "vpn_upstream_errors_total",
-              "refId": "A"
-            }
-          ],
-          "gridPos": { "x": 0, "y": 6, "w": 12, "h": 6 }
-        },
-        {
-          "type": "graph",
-          "title": "App /status Requests",
-          "targets": [
-            {
-              "expr": "status_requests_total",
-              "refId": "A"
-            }
-          ],
-          "gridPos": { "x": 12, "y": 6, "w": 12, "h": 6 }
+          "gridPos": { "x": 0, "y": 8, "w": 24, "h": 8 },
+          "options": {
+            "showPoints": "never",
+            "legend": { "displayMode": "table", "placement": "right" }
+          }
         }
       ]
     }

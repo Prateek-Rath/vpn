@@ -3,7 +3,7 @@ FROM python:3.11-slim
 WORKDIR /app
 COPY main.py .
 
-RUN pip install fastapi uvicorn prometheus_client
+RUN pip install fastapi uvicorn
 
 EXPOSE 9002
 
