@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_REGISTRY = "pratster20"       // need to replace
         // APP_IMAGE = "${DOCKER_REGISTRY}/spe-app:latest"
-        VPN_IMAGE = "${DOCKER_REGISTRY}/spe-vpn:latest"
+        // VPN_IMAGE = "${DOCKER_REGISTRY}/spe-vpn:latest"
         APP_IMAGE = "${DOCKER_REGISTRY}/app-image:latest"
         VPN_IMAGE = "${DOCKER_REGISTRY}/vpn-image:latest"
         DOCKER_CREDENTIALS_ID = "dockerhub-creds" // need to add in jenkins
