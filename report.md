@@ -142,7 +142,7 @@ which will start the playbook. Subsequently, services will be available on the p
 
 5) Grafana will then show you visualizations of metrics scraped by Prometheus.
 
-6) First create an index with the pattern filebeat-*. Then, head to the Discover tab and filter logs as per requirements(eg kubernetes.labels.app:app). For a dashboard, detailed     steps are mentioned in the logging section.
+6) First create a Data view with the pattern filebeat-*. Then, head to the Discover tab and filter logs as per requirements(eg kubernetes.labels.app:app). For a dashboard, detailed steps are mentioned in the logging section.
 
 ## Authors
 
