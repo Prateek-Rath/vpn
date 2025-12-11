@@ -44,7 +44,7 @@
         when: app_image != ""
 
       - name: Build app image locally
-        command: minikube image build -t app-image {{ local_app_path }}
+        command: minikube image build -t {{ app_image }} {{ local_app_path }}
         when: app_image == ""
         register: app_image_built
 
@@ -55,7 +55,7 @@
         when: vpn_image != ""
 
       - name: Build vpn image locally
-        command: minikube image build -t vpn-image {{ local_vpn_path }}
+        command: minikube image build -t {{ vpn_image }} {{ local_vpn_path }}
         when: vpn_image == ""
         register: vpn_image_built
 

@@ -16,7 +16,7 @@ spec:
       containers:
         - name: app
           image: pratster20/app-image:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9002
           resources:
