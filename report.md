@@ -49,7 +49,33 @@ infrastructure automation.
 
 ### CI/CD
 
+We've used Jenkins for continuous integration and continuous deployment. On each push to any of the github branches, a webhook triggers the pipeline, which checks out the recent commits, builds the updated images for the app and vpn, and pushes them to a Docker Hub registry. It then runs the ansible playbook locally.
+
 ### Infrastructure
+
+We've used Ansible for configuration management and infrastructure automation. When triggered via the Jenkins pipeline, ansible first stops the existing minikube cluster and starts a fresh one with specified memory and CPU requirements. It then pulls the required images from Docker Hub, and applies all k8s manifests following which the application is deployed. Since minikube with the docker driver does not expose ports externally, we need to do port forwarding, which is also done via the playbook. Finally, the application entrypoint (Nginx->VPN), Grafana for checking metrics, and Kibana for checking logs, are available on separate ports
+
+#### Roles in Ansible
+
+Ansible roles are useful to make the playbook smaller and easier to read. They split tasks into independent logical units which improves modularity, reusability and scalability. Since we had 3 namespaces `app`, `monitoring` and `logging`, we decided to have 4 roles, one for each plus one extra which creates these namespaces. This helped us to group deployments by their purpose, simplified the playbook, and will be easier to maintain in future when more functionalities might get added.
+
+#### Ansible Vault
+
+Ansible vault allows us to encrypt sensitive data such as passwords, API keys or other credentials within the project. We had a list of username-password pairs which were used to connect to the VPN. These were originally stored in a plain JSON file withing the project, which is highly insecure. We then moved it to secrets.yaml in k8s which injected them at runtime, however they were still stored in plaintext. Ansible vault allows us to encrypt these secrets securely, and while running the playbook, a password or a password file can be provided to decrypt these secrets back. This is done using a Jinja2 template which renders the k8s secret from the vault file, and during playbook execution, ansible injects decrypted credentials from the vault file into the template which is then applied to k8s.
+
+We can encrypt the secrets as
+
+```
+ansible-vault encrypt ansible/group_vars/all/vpn_creds.yml --vault-password-file password.txt
+```
+
+and then we can put
+
+```
+ansible-playbook -i inventory.ini playbook.yml --vault-password-file password.txt
+```
+
+in the Jenkinsfile.
 
 ## Steps to Run
 

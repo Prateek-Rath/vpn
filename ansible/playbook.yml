@@ -79,3 +79,15 @@
       nohup kubectl port-forward svc/kibana {{ kibana_port }}:5601 -n logging > /dev/null 2>&1 &
     async: 3600
     poll: 0
+
+  - name: Debug - App service port
+    debug:
+      msg: "App service should be available on localhost:{{ app_port }}"
+
+  - name: Debug - Grafana service port
+    debug:
+      msg: "Grafana service should be available on localhost:{{ grafana_port }}"
+
+  - name: Debug - Kibana service port
+    debug:
+      msg: "Kibana service should be available on localhost:{{ kibana_port }}"
