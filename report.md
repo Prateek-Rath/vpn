@@ -54,6 +54,35 @@ These metrics are sent to Grafana, which aggregates them and displays them as gr
 
 ### Logging
 
+We use the Elastic Stack (ELK Stack)—Filebeat, Logstash, Elasticsearch, and Kibana—to collect, process, store, and visualize logs.
+
+Filebeat runs on the application nodes and collects log files or container logs. It forwards these logs to Logstash or directly to Elasticsearch.
+Logstash is an optional but powerful processing layer where logs can be enriched, parsed, filtered, or transformed before they are indexed.
+The processed logs are then sent to Elasticsearch, which stores them in indices designed for fast search and analytics.
+Finally, Kibana sits on top of Elasticsearch and provides dashboards, charts, and real-time visualizations that help us understand system behavior, troubleshoot issues, and monitor application health.
+
+This pipeline enables efficient log ingestion, structured indexing, and meaningful insights from logs in real time.
+
+For this project we present 5 visualizations:
+- Logs per container bar chart
+- Logs over time line chart
+- Error Logs v/s Normal Logs over time
+- Top 5 pods with the most error logs
+- Log Volume by Namespace Pie chart
+
+To view these:
+- Deploy the application via the jenkins pipeline.
+- Switch to the jenkins user by running `sudo su - jenkins`
+- Run `kubectl port-forward svc/kibana 30090:5601 -n logging`
+- Head to http://localhost:5601 in the browser
+- Click on ☰ (menu) icon in the top-left corner
+- Scroll to the bottom and click on Stack Management under the Management Section
+- In Stack Management, click on Saved Objects under Kibana in the left pane
+- Click import and then import the kibana_dashboard.ndjson file present in the viz folder of the github repo
+- Refresh the visualization to see real time updates.
+
+
+
 ### CI/CD
 
 We've used Jenkins for continuous integration and continuous deployment. On each push to any of the github branches, a webhook triggers the pipeline, which checks out the recent commits, builds the updated images for the app and vpn, and pushes them to a Docker Hub registry. It then runs the ansible playbook locally.
