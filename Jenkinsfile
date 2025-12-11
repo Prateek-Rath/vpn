@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_REGISTRY = "mydockerhubuser"       // need to replace
+        DOCKER_REGISTRY = "pratster20"       // need to replace
         APP_IMAGE = "${DOCKER_REGISTRY}/spe-app:latest"
         VPN_IMAGE = "${DOCKER_REGISTRY}/spe-vpn:latest"
         DOCKER_CREDENTIALS_ID = "dockerhub-creds" // need to add in jenkins
