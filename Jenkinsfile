@@ -30,7 +30,7 @@ pipeline {
 
         stage('Run Ansible Playbook') {
             steps {
-                sh "ansible-playbook -i inventory.ini playbook.yml --vault-password-file password.txt"
+                sh "ansible-playbook -i ./ansible/inventory.ini ./ansible/playbook.yml --vault-password-file password.txt"
             }
         }
     }
