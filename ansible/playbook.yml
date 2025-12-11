@@ -5,8 +5,8 @@
   gather_facts: false
 
   vars:
-    app_image: "pratster20/app-image:latest" # need to replace
-    vpn_image: "pratster20/vpn-image:latest" # need to replace
+    app_image: "pratster20/app-image:latest"
+    vpn_image: "pratster20/vpn-image:latest"
     local_app_path: ../app
     local_vpn_path: ../vpn
     k8s_dir: ../k8s
@@ -85,12 +85,12 @@
 
   - name: Debug - App service port
     debug:
-      msg: "App service should be available on localhost:{{ app_port }}"
+      msg: "App service should be available on http://localhost:{{ app_port }}"
 
   - name: Debug - Grafana service port
     debug:
-      msg: "Grafana service should be available on localhost:{{ grafana_port }}"
+      msg: "Grafana service should be available on http://localhost:{{ grafana_port }}"
 
   - name: Debug - Kibana service port
     debug:
-      msg: "Kibana service should be available on localhost:{{ kibana_port }}"
+      msg: "Kibana service should be available on http://localhost:{{ kibana_port }}"

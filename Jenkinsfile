@@ -2,12 +2,10 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_REGISTRY = "pratster20"       // need to replace
-        // APP_IMAGE = "${DOCKER_REGISTRY}/spe-app:latest"
-        // VPN_IMAGE = "${DOCKER_REGISTRY}/spe-vpn:latest"
+        DOCKER_REGISTRY = "pratster20"
         APP_IMAGE = "${DOCKER_REGISTRY}/app-image:latest"
         VPN_IMAGE = "${DOCKER_REGISTRY}/vpn-image:latest"
-        DOCKER_CREDENTIALS_ID = "dockerhub-creds" // need to add in jenkins
+        DOCKER_CREDENTIALS_ID = "dockerhub-creds"
     }
 
     stages {

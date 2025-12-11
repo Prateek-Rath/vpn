@@ -45,6 +45,13 @@ infrastructure automation.
 
 ### Monitoring
 
+We've used Prometheus to scrape metrics from the app and vpn pods, and Grafana to visualize these metrics. The following metrics are scraped:
+
+- Number of `/status` requests allowed by the vpn
+- Number of api requests which fail due to invalid/expired JWT tokens
+
+These metrics are sent to Grafana, which aggregates them and displays them as graphs/dashboards. The exact configuration for the dashboards has to be specified as JSON, which we have embedded into the k8s manifests for Grafana.
+
 ### Logging
 
 ### CI/CD
@@ -78,6 +85,35 @@ ansible-playbook -i inventory.ini playbook.yml --vault-password-file password.tx
 in the Jenkinsfile.
 
 ## Steps to Run
+
+Ensure you have the following things installed:
+
+- Docker: Container runtime
+- Minikube & kubectl: For container orchestration
+- Ansible: Configuration management
+- Jenkins: For CI/CD.
+
+If Jenkins is configured correctly with github webhooks and dockerhub creds, a push to this repository will trigger the pipeline which will start the application locally.
+
+If not, you can use Ansible:
+
+1) Clone the repository
+
+2) Check `ansible/playbook.yaml` and set your minikube CPU and memory specs, and other parameters
+
+3) In the project root, run
+
+```
+ansible-playbook -i ./ansible/inventory.ini ./ansible/playbook.yml --vault-password-file ./ansible/password.txt
+```
+
+which will start the playbook. Subsequently, services will be available on the ports specified in the playbook.
+
+4) The main app is intuitive to use, you can log in, check a request to `/status`, and send requests at a certain rate.
+
+5) Grafana will then show you visualizations of metrics scraped by Prometheus.
+
+6) //elk stack goes here
 
 ## Authors
 
