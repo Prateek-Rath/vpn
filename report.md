@@ -42,6 +42,25 @@ infrastructure automation.
 ![Architecture](assets/arch.png)
 
 ### Containerization and Orchestration
+All the containerization and orchestration is present in the k8s folder. Broadly, we can divide our application's main functionality into:
+- the nginx reverse proxy
+- the vpn gateway where auth takes place
+- the app itself which handles requests.
+We have the following deployments:
+- app
+- elastic search
+- grafana
+- kibana
+- nginx
+- prometheus
+- vpn
+Some of the deployments such as logstash, prometheus etc use configmaps to store configurations that are then mounted in the deployed containers for use.
+Every deployment is exposed to the rest of the cluster via a service. Port forwarding helping us access those services from localhost.
+
+Typically, filebeat is used as a daemonset and not a deployment, because it needs to read log paths from every node. Daemonsets automatically track cluster scaling i.e. when a new node joins, filebeat automatically starts tracking that node. Here since we are running on minikube(a single node cluster), it doesn't matter as much.
+
+Each deployment folder is armed with a kustomization.yaml file that simply allows us to use the -k flag and apply all yaml files within a folder via a single command.
+
 
 ### Monitoring
 
