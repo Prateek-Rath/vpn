@@ -11,7 +11,7 @@ data:
 
     http {
         # Shared rate limit zone: 20 requests/sec per IP
-        limit_req_zone $binary_remote_addr zone=status_zone:10m rate=200000000000000r/s;
+        limit_req_zone $binary_remote_addr zone=status_zone:10m rate=20r/s;
 
         # JSON log format
         log_format json escape=json '{'
